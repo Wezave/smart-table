@@ -1,5 +1,3 @@
-import './fonts/ys-display/fonts.css'
-import './style.css'
 
 import {data as sourceData} from "./data/dataset_2.js";
 
