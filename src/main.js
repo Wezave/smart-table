@@ -10,7 +10,6 @@ import {initPagination} from "./components/pagination.js";
 import {initSorting} from './components/sorting.js';
 import {initFiltering} from './components/filtering.js';
 
-// Исходные данные используемые в render()
 const {data, ...indexes} = initData(sourceData);
 
 /**
@@ -36,24 +35,20 @@ function collectState() {
 function render(action) {
     let state = collectState();
     let result = [...data];
-    
-    // ВАЖНО: правильный порядок!
-    result = applySearching(result, state, action);    // 1. Поиск
-    result = applyFiltering(result, state, action);    // 2. Фильтрация
-    result = applySorting(result, state, action);      // 3. Сортировка
-    result = applyPagination(result, state, action);   // 4. Пагинация
-    
+    result = applySearching(result, state, action);   
+    result = applyFiltering(result, state, action);   
+    result = applySorting(result, state, action);      
+    result = applyPagination(result, state, action);   
     sampleTable.render(result);
 }
 
 const sampleTable = initTable({
     tableTemplate: 'table',
     rowTemplate: 'row',
-    before: ['search', 'header', 'filter'],  // Поиск добавлен
+    before: ['search', 'header', 'filter'],  
     after: ['pagination']
 }, render);
 
-// Инициализация пагинации
 const applyPagination = initPagination(
     sampleTable.pagination.elements,
     (el, page, isCurrent) => {
@@ -66,18 +61,15 @@ const applyPagination = initPagination(
     }
 );
 
-// Инициализация сортировки
 const applySorting = initSorting([
     sampleTable.header.elements.sortByDate,
     sampleTable.header.elements.sortByTotal
 ]);
 
-// Инициализация фильтрации
 const applyFiltering = initFiltering(sampleTable.filter.elements, {
     searchBySeller: indexes.sellers
 });
 
-// ВАЖНО: Добавить эту строку - инициализация поиска
 const applySearching = initSearching('search');
 
 const appRoot = document.querySelector('#app');
