@@ -10,7 +10,7 @@ import {initPagination} from "./components/pagination.js";
 import {initSorting} from './components/sorting.js';
 import {initFiltering} from './components/filtering.js';
 
-const {data, ...indexes} = initData(sourceData);
+const api = initData(sourceData);
 
 /**
  * Сбор и обработка полей из таблицы
@@ -32,14 +32,15 @@ function collectState() {
  * Перерисовка состояния таблицы при любых изменениях
  * @param {HTMLButtonElement?} action
  */
-function render(action) {
+async function render(action) {
     let state = collectState();
-    let result = [...data];
-    result = applySearching(result, state, action);   
+    let query = {};
+/*     result = applySearching(result, state, action);   
     result = applyFiltering(result, state, action);   
     result = applySorting(result, state, action);      
-    result = applyPagination(result, state, action);   
-    sampleTable.render(result);
+    result = applyPagination(result, state, action);    */
+    const { total, items } = await api.getRecords(query);
+    sampleTable.render(items);
 }
 
 const sampleTable = initTable({
@@ -66,13 +67,17 @@ const applySorting = initSorting([
     sampleTable.header.elements.sortByTotal
 ]);
 
-const applyFiltering = initFiltering(sampleTable.filter.elements, {
+/* const applyFiltering = initFiltering(sampleTable.filter.elements, {
     searchBySeller: indexes.sellers
 });
-
+ */
 const applySearching = initSearching('search');
 
 const appRoot = document.querySelector('#app');
 appRoot.appendChild(sampleTable.container);
 
-render();
+async function init() {
+    const indexes = await api.getIndexes();
+}
+
+init().then(render);
