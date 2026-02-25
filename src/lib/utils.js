@@ -5,9 +5,7 @@
  */
 export function cloneTemplate(templateId) {
     const template = document.getElementById(templateId);
-
     const clone = template.content.firstElementChild.cloneNode(true);
-
     const elements = Array.from(clone.querySelectorAll('[data-name]')).reduce((acc, el) => {
         acc[el.dataset.name] = el;
         return acc;

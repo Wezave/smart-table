@@ -1,5 +1,3 @@
-import { data as sourceData } from "./data/dataset_2.js";
-
 import { initData } from "./data.js";
 import { processFormData } from "./lib/utils.js";
 
@@ -9,8 +7,7 @@ import { initPagination } from "./components/pagination.js";
 import { initSorting } from "./components/sorting.js";
 import { initFiltering } from "./components/filtering.js";
 
-const api = initData(sourceData);
-
+const api = initData();
 /**
  * Сбор и обработка полей из таблицы
  * @returns {Object}
@@ -87,6 +84,19 @@ async function init() {
   updateIndexes(sampleTable.filter.elements, {
     searchBySeller: indexes.sellers,
   });
+
+  // Кнопки очистки полей поиска по дате и имени покупателя
+  const filterRow = sampleTable.container.querySelector('.filter-row');
+  filterRow.querySelectorAll('.icon').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.preventDefault();
+      const currentInput = filterRow.querySelector(`[name="${button.dataset.field}"]`);
+      if (currentInput) {
+        currentInput.value = '';
+        render();
+      }
+    })
+  })
 }
 
 init().then(render);
