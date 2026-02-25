@@ -1,14 +1,13 @@
+import { data as sourceData } from "./data/dataset_2.js";
 
-import {data as sourceData} from "./data/dataset_2.js";
+import { initData } from "./data.js";
+import { processFormData } from "./lib/utils.js";
 
-import {initData} from "./data.js";
-import {processFormData} from "./lib/utils.js";
-
-import {initTable} from "./components/table.js";
-import {initSearching} from "./components/searching.js";
-import {initPagination} from "./components/pagination.js";
-import {initSorting} from './components/sorting.js';
-import {initFiltering} from './components/filtering.js';
+import { initTable } from "./components/table.js";
+import { initSearching } from "./components/searching.js";
+import { initPagination } from "./components/pagination.js";
+import { initSorting } from "./components/sorting.js";
+import { initFiltering } from "./components/filtering.js";
 
 const api = initData(sourceData);
 
@@ -17,15 +16,15 @@ const api = initData(sourceData);
  * @returns {Object}
  */
 function collectState() {
-    const state = processFormData(new FormData(sampleTable.container));
-    const rowsPerPage = parseInt(state.rowsPerPage);
-    const page = parseInt(state.page ?? 1);
+  const state = processFormData(new FormData(sampleTable.container));
+  const rowsPerPage = parseInt(state.rowsPerPage);
+  const page = parseInt(state.page ?? 1);
 
-    return {
-        ...state,
-        rowsPerPage,
-        page
-    };
+  return {
+    ...state,
+    rowsPerPage,
+    page,
+  };
 }
 
 /**
@@ -33,51 +32,61 @@ function collectState() {
  * @param {HTMLButtonElement?} action
  */
 async function render(action) {
-    let state = collectState();
-    let query = {};
-/*     result = applySearching(result, state, action);   
+  let state = collectState();
+  let query = {};
+  /*     result = applySearching(result, state, action);   
     result = applyFiltering(result, state, action);   
     result = applySorting(result, state, action);      
     result = applyPagination(result, state, action);    */
-    const { total, items } = await api.getRecords(query);
-    sampleTable.render(items);
+  query = applySearching(query, state, action);
+  query = applyFiltering(query, state, action);
+  query = applySorting(query, state, action);
+  query = applyPagination(query, state, action);
+  const { total, items } = await api.getRecords(query);
+  updatePagination(total, query);
+  sampleTable.render(items);
 }
 
 const sampleTable = initTable({
-    tableTemplate: 'table',
-    rowTemplate: 'row',
-    before: ['search', 'header', 'filter'],  
-    after: ['pagination']
-}, render);
+    tableTemplate: "table",
+    rowTemplate: "row",
+    before: ["search", "header", "filter"],
+    after: ["pagination"],
+  },
+  render,
+);
 
-const applyPagination = initPagination(
-    sampleTable.pagination.elements,
-    (el, page, isCurrent) => {
-        const input = el.querySelector('input');
-        const label = el.querySelector('span');
-        input.value = page;
-        input.checked = isCurrent;
-        label.textContent = page;
-        return el;
-    }
+const { applyPagination, updatePagination } = initPagination(
+  sampleTable.pagination.elements,
+  (el, page, isCurrent) => {
+    const input = el.querySelector("input");
+    const label = el.querySelector("span");
+    input.value = page;
+    input.checked = isCurrent;
+    label.textContent = page;
+    return el;
+  },
 );
 
 const applySorting = initSorting([
-    sampleTable.header.elements.sortByDate,
-    sampleTable.header.elements.sortByTotal
+  sampleTable.header.elements.sortByDate,
+  sampleTable.header.elements.sortByTotal,
 ]);
 
-/* const applyFiltering = initFiltering(sampleTable.filter.elements, {
-    searchBySeller: indexes.sellers
-});
- */
-const applySearching = initSearching('search');
+const { applyFiltering, updateIndexes } = initFiltering(
+  sampleTable.filter.elements,
+);
 
-const appRoot = document.querySelector('#app');
+const applySearching = initSearching("search");
+
+const appRoot = document.querySelector("#app");
 appRoot.appendChild(sampleTable.container);
 
 async function init() {
-    const indexes = await api.getIndexes();
+  const indexes = await api.getIndexes();
+  updateIndexes(sampleTable.filter.elements, {
+    searchBySeller: indexes.sellers,
+  });
 }
 
 init().then(render);
